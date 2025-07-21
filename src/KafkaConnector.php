@@ -123,18 +123,72 @@ class KafkaConnector implements ConnectorInterface
             
             // SSL configuration if needed
             if (str_contains($securityProtocol, 'SSL')) {
-                if (isset($config['ssl_ca_location'])) {
-                    $conf->set('ssl.ca.location', $config['ssl_ca_location']);
-                }
-                if (isset($config['ssl_certificate_location'])) {
-                    $conf->set('ssl.certificate.location', $config['ssl_certificate_location']);
-                }
-                if (isset($config['ssl_key_location'])) {
-                    $conf->set('ssl.key.location', $config['ssl_key_location']);
-                }
+                $this->configureSslCertificates($conf, $config);
             }
         }
 
         return $conf;
+    }
+
+    /**
+     * Configure SSL certificates from either file paths or PEM strings.
+     */
+    protected function configureSslCertificates(Conf $conf, array $config): void
+    {
+        // CA Certificate configuration
+        if (isset($config['ssl_ca_pem']) && !empty($config['ssl_ca_pem'])) {
+            // Use PEM string - create temporary file
+            $caFile = $this->createTempCertFile($config['ssl_ca_pem'], 'ca');
+            $conf->set('ssl.ca.location', $caFile);
+        } elseif (isset($config['ssl_ca_location']) && !empty($config['ssl_ca_location'])) {
+            // Use file path
+            $conf->set('ssl.ca.location', $config['ssl_ca_location']);
+        }
+
+        // Client Certificate configuration
+        if (isset($config['ssl_certificate_pem']) && !empty($config['ssl_certificate_pem'])) {
+            // Use PEM string - create temporary file
+            $certFile = $this->createTempCertFile($config['ssl_certificate_pem'], 'cert');
+            $conf->set('ssl.certificate.location', $certFile);
+        } elseif (isset($config['ssl_certificate_location']) && !empty($config['ssl_certificate_location'])) {
+            // Use file path
+            $conf->set('ssl.certificate.location', $config['ssl_certificate_location']);
+        }
+
+        // Client Private Key configuration
+        if (isset($config['ssl_key_pem']) && !empty($config['ssl_key_pem'])) {
+            // Use PEM string - create temporary file
+            $keyFile = $this->createTempCertFile($config['ssl_key_pem'], 'key');
+            $conf->set('ssl.key.location', $keyFile);
+        } elseif (isset($config['ssl_key_location']) && !empty($config['ssl_key_location'])) {
+            // Use file path
+            $conf->set('ssl.key.location', $config['ssl_key_location']);
+        }
+    }
+
+    /**
+     * Create a temporary file for certificate PEM content.
+     */
+    protected function createTempCertFile(string $pemContent, string $type): string
+    {
+        $tempDir = sys_get_temp_dir();
+        $filename = sprintf('kafka_%s_%s.pem', $type, uniqid());
+        $filepath = $tempDir . DIRECTORY_SEPARATOR . $filename;
+
+        if (file_put_contents($filepath, $pemContent) === false) {
+            throw KafkaException::configurationInvalid("Failed to create temporary certificate file for {$type}");
+        }
+
+        // Set restrictive permissions for security
+        chmod($filepath, 0600);
+
+        // Register for cleanup on shutdown
+        register_shutdown_function(function() use ($filepath) {
+            if (file_exists($filepath)) {
+                unlink($filepath);
+            }
+        });
+
+        return $filepath;
     }
 }

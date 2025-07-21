@@ -34,9 +34,15 @@ return [
             'sasl_password' => env('KAFKA_SASL_PASSWORD'),
             
             // SSL settings (if using SSL)
+            // Option 1: File paths to certificates
             'ssl_ca_location' => env('KAFKA_SSL_CA_LOCATION'),
             'ssl_certificate_location' => env('KAFKA_SSL_CERTIFICATE_LOCATION'),
             'ssl_key_location' => env('KAFKA_SSL_KEY_LOCATION'),
+            
+            // Option 2: Certificate content as strings (useful for Kubernetes secrets)
+            'ssl_ca_pem' => env('KAFKA_SSL_CA_PEM'),
+            'ssl_certificate_pem' => env('KAFKA_SSL_CERTIFICATE_PEM'),
+            'ssl_key_pem' => env('KAFKA_SSL_KEY_PEM'),
             
             // Client settings
             'client_id' => env('KAFKA_CLIENT_ID', 'laravel-kafka-client'),

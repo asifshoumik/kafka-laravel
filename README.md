@@ -253,12 +253,60 @@ class RiskyJob extends KafkaJob
 
 #### SSL/TLS Configuration
 
+> 📋 **Detailed Guide:** See [SSL-CONFIGURATION.md](SSL-CONFIGURATION.md) for comprehensive SSL/TLS setup instructions.
+
+**For SSL-only authentication (server verification only):**
+
+Option 1 - Using certificate files:
 ```env
 KAFKA_SECURITY_PROTOCOL=SSL
-KAFKA_SSL_CA_LOCATION=/path/to/ca-cert
-KAFKA_SSL_CERTIFICATE_LOCATION=/path/to/client-cert
-KAFKA_SSL_KEY_LOCATION=/path/to/client-key
+KAFKA_SSL_CA_LOCATION=/path/to/ca-certificate.crt
 ```
+
+Option 2 - Using certificate strings (Kubernetes secrets):
+```env
+KAFKA_SECURITY_PROTOCOL=SSL
+KAFKA_SSL_CA_PEM="-----BEGIN CERTIFICATE-----
+MIIErDCCApSgAwIBAgIRdmZqCilhcM...
+-----END CERTIFICATE-----"
+```
+
+**For mutual SSL authentication (client and server verification):**
+
+Option 1 - Using certificate files:
+```env
+KAFKA_SECURITY_PROTOCOL=SSL
+KAFKA_SSL_CA_LOCATION=/path/to/ca-certificate.crt
+KAFKA_SSL_CERTIFICATE_LOCATION=/path/to/client-certificate.crt
+KAFKA_SSL_KEY_LOCATION=/path/to/client-private-key.key
+```
+
+Option 2 - Using certificate strings (Kubernetes secrets):
+```env
+KAFKA_SECURITY_PROTOCOL=SSL
+KAFKA_SSL_CA_PEM="-----BEGIN CERTIFICATE-----..."
+KAFKA_SSL_CERTIFICATE_PEM="-----BEGIN CERTIFICATE-----..."
+KAFKA_SSL_KEY_PEM="-----BEGIN PRIVATE KEY-----..."
+```
+
+**Example with your CA certificate:**
+```env
+# Basic SSL with CA verification
+KAFKA_SECURITY_PROTOCOL=SSL
+KAFKA_SSL_CA_LOCATION=C:\path\to\ca-certificate.crt
+
+# If you also have client certificates (for mutual TLS)
+KAFKA_SSL_CERTIFICATE_LOCATION=C:\path\to\client.crt
+KAFKA_SSL_KEY_LOCATION=C:\path\to\client.key
+```
+
+**Note:** 
+- **File paths**: Use forward slashes `/` or double backslashes `\\` in Windows paths
+- **Certificate strings**: Include the full PEM content with headers and footers
+- **Kubernetes**: PEM strings work perfectly with Kubernetes secrets
+- **Precedence**: PEM strings take priority over file paths if both are provided
+- The CA certificate verifies the Kafka broker's identity
+- Client certificates are only needed for mutual TLS authentication
 
 #### SASL Authentication
 
@@ -341,6 +389,35 @@ composer require asifshoumik/kafka-laravel --ignore-platform-req=ext-rdkafka
 - Check firewall settings for Kafka ports
 - Verify broker addresses in configuration
 - Check authentication credentials if using SASL
+
+### SSL/TLS Certificate Issues
+
+**Certificate file not found:**
+```
+Failed to set SSL CA location: No such file or directory
+```
+- Verify the certificate file path exists
+- Use absolute paths for certificate files
+- Check file permissions (readable by web server)
+
+**Certificate verification failed:**
+```
+SSL handshake failed
+```
+- Ensure the CA certificate matches your Kafka broker's certificate
+- Check if the certificate has expired
+- Verify the certificate chain is complete
+
+**Windows path issues:**
+- Use forward slashes: `C:/path/to/cert.crt`
+- Or escape backslashes: `C:\\path\\to\\cert.crt`
+- Avoid spaces in certificate file paths
+
+**Testing certificate connection:**
+```bash
+# Test SSL connection to Kafka broker
+openssl s_client -connect your-kafka-broker:9093 -CAfile /path/to/your/ca.crt
+```
 
 ### Performance Issues
 
