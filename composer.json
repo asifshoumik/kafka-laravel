@@ -1,10 +1,10 @@
 {
-    "name": "asifs/kafka_queue-laravel",
+    "name": "asifshoumik/kafka-laravel",
     "description": "A robust Kafka queue driver for Laravel microservices with support for delayed jobs, retry mechanisms, and comprehensive error handling.",
     "type": "library",
     "license": "MIT",
     "keywords": ["laravel", "kafka", "queue", "microservices", "messaging"],
-    "homepage": "https://github.com/asifkhan66/kafka_queue-laravel",
+    "homepage": "https://github.com/asifshoumik/kafka-laravel",
     "require": {
         "php": "^8.1",
         "laravel/framework": "^10.0|^11.0",
@@ -19,25 +19,25 @@
     },
     "autoload": {
         "psr-4": {
-            "Asifs\\KafkaQueueLaravel\\": "src/"
+            "Asifshoumik\\KafkaLaravel\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Asifs\\KafkaQueueLaravel\\Tests\\": "tests/"
+            "Asifshoumik\\KafkaLaravel\\Tests\\": "tests/"
         }
     },
     "extra": {
         "laravel": {
             "providers": [
-                "Asifs\\KafkaQueueLaravel\\KafkaServiceProvider"
+                "Asifshoumik\\KafkaLaravel\\KafkaServiceProvider"
             ]
         }
     },
     "authors": [
         {
             "name": "Asif Khan Pathan",
-            "email": "137769714+asifkhan66@users.noreply.github.com",
+            "email": "137769714+asifshoumik@users.noreply.github.com",
             "role": "Developer"
         }
     ],

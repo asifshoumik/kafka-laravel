@@ -1,8 +1,8 @@
 <?php
 
-namespace Asifs\KafkaQueueLaravel\Console\Commands;
+namespace Asifshoumik\KafkaLaravel\Console\Commands;
 
-use Asifs\KafkaQueueLaravel\KafkaQueue;
+use Asifshoumik\KafkaLaravel\KafkaQueue;
 use Illuminate\Console\Command;
 use Illuminate\Queue\QueueManager;
 use Illuminate\Queue\Worker;

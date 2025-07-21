@@ -1,8 +1,8 @@
 <?php
 
-namespace Asifs\KafkaQueueLaravel;
+namespace Asifshoumik\KafkaLaravel;
 
-use Asifs\KafkaQueueLaravel\Exceptions\KafkaException;
+use Asifshoumik\KafkaLaravel\Exceptions\KafkaException;
 use Illuminate\Queue\Connectors\ConnectorInterface;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Arr;

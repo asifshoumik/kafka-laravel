@@ -1,10 +1,10 @@
 <?php
 
-namespace Asifs\KafkaQueueLaravel\Tests\Unit;
+namespace Asifshoumik\KafkaLaravel\Tests\Unit;
 
-use Asifs\KafkaQueueLaravel\Tests\TestCase;
-use Asifs\KafkaQueueLaravel\KafkaConnector;
-use Asifs\KafkaQueueLaravel\Exceptions\KafkaException;
+use Asifshoumik\KafkaLaravel\Tests\TestCase;
+use Asifshoumik\KafkaLaravel\KafkaConnector;
+use Asifshoumik\KafkaLaravel\Exceptions\KafkaException;
 
 class KafkaConnectorTest extends TestCase
 {

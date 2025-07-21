@@ -1,9 +1,9 @@
 <?php
 
-namespace Asifs\KafkaQueueLaravel;
+namespace Asifshoumik\KafkaLaravel;
 
-use Asifs\KafkaQueueLaravel\Console\Commands\KafkaConsumeCommand;
-use Asifs\KafkaQueueLaravel\Console\Commands\KafkaWorkCommand;
+use Asifshoumik\KafkaLaravel\Console\Commands\KafkaConsumeCommand;
+use Asifshoumik\KafkaLaravel\Console\Commands\KafkaWorkCommand;
 use Illuminate\Queue\QueueManager;
 use Illuminate\Support\ServiceProvider;
 

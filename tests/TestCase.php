@@ -1,9 +1,9 @@
 <?php
 
-namespace Asifs\KafkaQueueLaravel\Tests;
+namespace Asifshoumik\KafkaLaravel\Tests;
 
 use Orchestra\Testbench\TestCase as Orchestra;
-use Asifs\KafkaQueueLaravel\KafkaServiceProvider;
+use Asifshoumik\KafkaLaravel\KafkaServiceProvider;
 
 abstract class TestCase extends Orchestra
 {

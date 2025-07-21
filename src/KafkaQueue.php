@@ -1,9 +1,9 @@
 <?php
 
-namespace Asifs\KafkaQueueLaravel;
+namespace Asifshoumik\KafkaLaravel;
 
-use Asifs\KafkaQueueLaravel\Exceptions\KafkaException;
-use Asifs\KafkaQueueLaravel\Jobs\KafkaJob;
+use Asifshoumik\KafkaLaravel\Exceptions\KafkaException;
+use Asifshoumik\KafkaLaravel\Jobs\KafkaJob;
 use Illuminate\Contracts\Queue\Queue as QueueContract;
 use Illuminate\Queue\Queue;
 use Illuminate\Support\Facades\Log;

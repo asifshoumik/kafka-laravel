@@ -2,8 +2,8 @@
 
 A robust and feature-rich Kafka queue driver for Laravel microservices with comprehensive error handling, delayed jobs, retry mechanisms, and dead letter queue support.
 
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/asifs/kafka_queue-laravel.svg?style=flat-square)](https://packagist.org/packages/asifs/kafka_queue-laravel)
-[![Total Downloads](https://img.shields.io/packagist/dt/asifs/kafka_queue-laravel.svg?style=flat-square)](https://packagist.org/packages/asifs/kafka_queue-laravel)
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/asifshoumik/kafka-laravel.svg?style=flat-square)](https://packagist.org/packages/asifshoumik/kafka-laravel)
+[![Total Downloads](https://img.shields.io/packagist/dt/asifshoumik/kafka-laravel.svg?style=flat-square)](https://packagist.org/packages/asifshoumik/kafka-laravel)
 
 ## Features
 
@@ -30,7 +30,7 @@ A robust and feature-rich Kafka queue driver for Laravel microservices with comp
 ### 1. Install the Package
 
 ```bash
-composer require asifs/kafka_queue-laravel
+composer require asifshoumik/kafka-laravel
 ```
 
 ### 2. Install rdkafka Extension
@@ -127,7 +127,7 @@ ProcessPodcast::dispatch($podcast)->delay(now()->addMinutes(10));
 
 namespace App\Jobs;
 
-use Asifs\KafkaQueueLaravel\Jobs\KafkaJob;
+use Asifshoumik\KafkaLaravel\Jobs\KafkaJob;
 
 class ProcessPodcast extends KafkaJob
 {
@@ -321,11 +321,11 @@ Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed re
 
 ## Credits
 
-- [Asif Khan Pathan](https://github.com/asifkhan66)
+- [Asif Khan Pathan](https://github.com/asifshoumik)
 - [All Contributors](../../contributors)
 
 ## Support
 
-- 📖 [Documentation](https://github.com/asifkhan66/kafka_queue-laravel/wiki)
-- 🐛 [Issue Tracker](https://github.com/asifkhan66/kafka_queue-laravel/issues)
-- 💬 [Discussions](https://github.com/asifkhan66/kafka_queue-laravel/discussions)
+- 📖 [Documentation](https://github.com/asifshoumik/kafka-laravel/wiki)
+- 🐛 [Issue Tracker](https://github.com/asifshoumik/kafka-laravel/issues)
+- 💬 [Discussions](https://github.com/asifshoumik/kafka-laravel/discussions)

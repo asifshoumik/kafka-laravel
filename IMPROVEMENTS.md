@@ -103,7 +103,7 @@ This Kafka queue package has been enhanced with enterprise-ready features, bette
 // In your Laravel application after installation
 
 // 1. Create a job
-class ProcessOrder extends \Asifs\KafkaQueueLaravel\Jobs\KafkaJob
+class ProcessOrder extends \Asifshoumik\KafkaLaravel\Jobs\KafkaJob
 {
     public function handle(): void
     {

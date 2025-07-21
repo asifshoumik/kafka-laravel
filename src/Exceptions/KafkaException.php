@@ -1,6 +1,6 @@
 <?php
 
-namespace Asifs\KafkaQueueLaravel\Exceptions;
+namespace Asifshoumik\KafkaLaravel\Exceptions;
 
 use Exception;
 

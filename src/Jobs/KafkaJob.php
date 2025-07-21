@@ -1,6 +1,6 @@
 <?php
 
-namespace Asifs\KafkaQueueLaravel\Jobs;
+namespace Asifshoumik\KafkaLaravel\Jobs;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
