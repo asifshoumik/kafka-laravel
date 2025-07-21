@@ -4,6 +4,7 @@ namespace Asifshoumik\KafkaLaravel;
 
 use Asifshoumik\KafkaLaravel\Console\Commands\KafkaConsumeCommand;
 use Asifshoumik\KafkaLaravel\Console\Commands\KafkaWorkCommand;
+use Asifshoumik\KafkaLaravel\Console\Commands\KafkaSetupCommand;
 use Illuminate\Queue\QueueManager;
 use Illuminate\Support\ServiceProvider;
 
@@ -55,6 +56,7 @@ class KafkaServiceProvider extends ServiceProvider
             $this->commands([
                 KafkaConsumeCommand::class,
                 KafkaWorkCommand::class,
+                KafkaSetupCommand::class,
             ]);
         }
     }

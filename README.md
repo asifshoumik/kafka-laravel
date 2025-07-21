@@ -64,10 +64,49 @@ php -m | grep rdkafka
 composer require asifshoumik/kafka-laravel
 ```
 
-### 3. Publish Configuration
+### 3. Run Setup Command
+
+```bash
+php artisan kafka:setup
+```
+
+This command will:
+- Publish the configuration file (`config/kafka-queue.php`)
+- Add the Kafka connection to your `config/queue.php`
+- Display next steps for configuration
+
+**Alternative: Manual Setup**
+
+If you prefer manual setup:
 
 ```bash
 php artisan vendor:publish --tag=kafka-queue-config
+```
+
+Then add the Kafka connection to your `config/queue.php`:
+
+```php
+'connections' => [
+    // ... other connections
+    
+    'kafka' => [
+        'driver' => 'kafka',
+        'bootstrap_servers' => env('KAFKA_BOOTSTRAP_SERVERS', 'localhost:9092'),
+        'group_id' => env('KAFKA_GROUP_ID', 'laravel-consumer-group'),
+        'default_topic' => env('KAFKA_DEFAULT_TOPIC', 'laravel-jobs'),
+        'dead_letter_queue' => env('KAFKA_DEAD_LETTER_QUEUE', 'laravel-failed-jobs'),
+        'security_protocol' => env('KAFKA_SECURITY_PROTOCOL', 'PLAINTEXT'),
+        'max_attempts' => env('KAFKA_MAX_ATTEMPTS', 3),
+        
+        // SSL settings (optional)
+        'ssl_ca_location' => env('KAFKA_SSL_CA_LOCATION'),
+        'ssl_ca_pem' => env('KAFKA_SSL_CA_PEM'),
+        'ssl_verify_hostname' => env('KAFKA_SSL_VERIFY_HOSTNAME', true),
+        'ssl_check_hostname' => env('KAFKA_SSL_CHECK_HOSTNAME', true),
+        
+        // Add other settings as needed from config/kafka-queue.php
+    ],
+],
 ```
 
 ### 4. Configure Environment Variables
@@ -396,6 +435,20 @@ composer require asifshoumik/kafka-laravel --ignore-platform-req=ext-rdkafka
 ```
 
 **Warning:** The package will not work without the rdkafka extension in production.
+
+### Configuration Not Being Used
+
+If your configuration changes in `config/kafka-queue.php` are not taking effect:
+
+1. **Check queue.php**: Ensure you have added the Kafka connection to `config/queue.php`
+2. **Run setup command**: `php artisan kafka:setup` to automatically configure
+3. **Clear config cache**: `php artisan config:clear`
+4. **Verify environment**: `php artisan config:show queue.connections.kafka`
+
+The package configuration works in this order:
+1. `config/queue.php` settings override everything
+2. `config/kafka-queue.php` provides defaults via `mergeConfigFrom()`
+3. Environment variables provide the actual values
 
 ### Connection Issues
 

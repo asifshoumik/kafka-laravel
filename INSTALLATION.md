@@ -92,6 +92,27 @@ Now you can install the package:
 composer require asifshoumik/kafka-laravel
 ```
 
+### 7. Setup Package Configuration
+
+Run the setup command to automatically configure the package:
+```bash
+php artisan kafka:setup
+```
+
+This will:
+- Publish `config/kafka-queue.php` with all available options
+- Add the Kafka connection to your `config/queue.php`
+- Show you the next steps
+
+### 8. Configure Your Environment
+
+Update your `.env` file with your Kafka settings:
+```env
+QUEUE_CONNECTION=kafka
+KAFKA_BOOTSTRAP_SERVERS=your-kafka-server:9092
+KAFKA_GROUP_ID=laravel-consumer-group
+```
+
 ## Docker Installation
 
 If you're using Docker, add this to your Dockerfile:
