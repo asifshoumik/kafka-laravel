@@ -27,28 +27,42 @@ A robust and feature-rich Kafka queue driver for Laravel microservices with comp
 
 ## Installation
 
-### 1. Install the Package
+> 📋 **Important:** The rdkafka PHP extension is required. See [INSTALLATION.md](INSTALLATION.md) for detailed installation instructions.
 
-```bash
-composer require asifshoumik/kafka-laravel
-```
+### 1. Install rdkafka Extension First
 
-### 2. Install rdkafka Extension
+**Important:** The rdkafka PHP extension must be installed before installing this package.
 
 **Ubuntu/Debian:**
 ```bash
 sudo apt-get install librdkafka-dev
 sudo pecl install rdkafka
+# Add extension=rdkafka.so to your php.ini file
 ```
 
 **macOS (with Homebrew):**
 ```bash
 brew install librdkafka
 pecl install rdkafka
+# Add extension=rdkafka.so to your php.ini file
 ```
 
 **Windows:**
-Download the appropriate DLL from the [PECL rdkafka page](https://pecl.php.net/package/rdkafka).
+1. Download the appropriate DLL from the [PECL rdkafka page](https://pecl.php.net/package/rdkafka)
+2. Place the DLL in your PHP extensions directory
+3. Add `extension=rdkafka` to your php.ini file
+4. Restart your web server
+
+**Verify Installation:**
+```bash
+php -m | grep rdkafka
+```
+
+### 2. Install the Package
+
+```bash
+composer require asifshoumik/kafka-laravel
+```
 
 ### 3. Publish Configuration
 
@@ -292,6 +306,48 @@ Example log entry:
     }
 }
 ```
+
+## Troubleshooting
+
+### rdkafka Extension Not Found
+
+If you get an error like this when running `composer require asifshoumik/kafka-laravel`:
+
+```
+Package asifshoumik/kafka-laravel has requirements incompatible with your PHP version, PHP extensions and Composer version:
+- asifshoumik/kafka-laravel v1.0.0 requires ext-rdkafka * but it is not present.
+```
+
+This means the rdkafka PHP extension is not installed. Follow these steps:
+
+1. **Install the extension first** (see [INSTALLATION.md](INSTALLATION.md) for detailed instructions)
+2. **Verify installation**: `php -m | grep rdkafka`
+3. **Check php.ini**: Ensure `extension=rdkafka` is added to your php.ini
+4. **Restart web server** after installing the extension
+
+### Installation with Missing Extensions
+
+If you need to install the package without rdkafka (for development purposes only):
+
+```bash
+composer require asifshoumik/kafka-laravel --ignore-platform-req=ext-rdkafka
+```
+
+**Warning:** The package will not work without the rdkafka extension in production.
+
+### Connection Issues
+
+- Verify Kafka is running: `telnet localhost 9092`
+- Check firewall settings for Kafka ports
+- Verify broker addresses in configuration
+- Check authentication credentials if using SASL
+
+### Performance Issues
+
+- Increase `batch_size` for higher throughput
+- Enable compression: `KAFKA_COMPRESSION_TYPE=snappy`
+- Tune consumer fetch settings
+- Monitor partition lag
 
 ## Testing
 
