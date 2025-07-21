@@ -164,6 +164,15 @@ class KafkaConnector implements ConnectorInterface
             // Use file path
             $conf->set('ssl.key.location', $config['ssl_key_location']);
         }
+
+        // SSL verification options
+        if (isset($config['ssl_verify_hostname'])) {
+            $conf->set('enable.ssl.certificate.verification', $config['ssl_verify_hostname'] ? 'true' : 'false');
+        }
+
+        if (isset($config['ssl_check_hostname'])) {
+            $conf->set('ssl.endpoint.identification.algorithm', $config['ssl_check_hostname'] ? 'https' : 'none');
+        }
     }
 
     /**

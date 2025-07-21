@@ -269,6 +269,10 @@ KAFKA_SECURITY_PROTOCOL=SSL
 KAFKA_SSL_CA_PEM="-----BEGIN CERTIFICATE-----
 MIIErDCCApSgAwIBAgIRdmZqCilhcM...
 -----END CERTIFICATE-----"
+
+# Optional: SSL verification settings
+KAFKA_SSL_VERIFY_HOSTNAME=true
+KAFKA_SSL_CHECK_HOSTNAME=true
 ```
 
 **For mutual SSL authentication (client and server verification):**
@@ -287,6 +291,10 @@ KAFKA_SECURITY_PROTOCOL=SSL
 KAFKA_SSL_CA_PEM="-----BEGIN CERTIFICATE-----..."
 KAFKA_SSL_CERTIFICATE_PEM="-----BEGIN CERTIFICATE-----..."
 KAFKA_SSL_KEY_PEM="-----BEGIN PRIVATE KEY-----..."
+
+# Optional: SSL verification settings
+KAFKA_SSL_VERIFY_HOSTNAME=true
+KAFKA_SSL_CHECK_HOSTNAME=true
 ```
 
 **Example with your CA certificate:**
@@ -305,8 +313,14 @@ KAFKA_SSL_KEY_LOCATION=C:\path\to\client.key
 - **Certificate strings**: Include the full PEM content with headers and footers
 - **Kubernetes**: PEM strings work perfectly with Kubernetes secrets
 - **Precedence**: PEM strings take priority over file paths if both are provided
+- **SSL Verification**: `ssl_verify_hostname` and `ssl_check_hostname` provide additional security
 - The CA certificate verifies the Kafka broker's identity
 - Client certificates are only needed for mutual TLS authentication
+
+**SSL Verification Options:**
+- `KAFKA_SSL_VERIFY_HOSTNAME=true` (default) - Enables SSL certificate verification
+- `KAFKA_SSL_CHECK_HOSTNAME=true` (default) - Enables hostname verification  
+- Set to `false` only for testing or when using self-signed certificates
 
 #### SASL Authentication
 

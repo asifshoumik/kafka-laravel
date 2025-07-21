@@ -44,6 +44,10 @@ return [
             'ssl_certificate_pem' => env('KAFKA_SSL_CERTIFICATE_PEM'),
             'ssl_key_pem' => env('KAFKA_SSL_KEY_PEM'),
             
+            // SSL verification options
+            'ssl_verify_hostname' => env('KAFKA_SSL_VERIFY_HOSTNAME', true),
+            'ssl_check_hostname' => env('KAFKA_SSL_CHECK_HOSTNAME', true),
+            
             // Client settings
             'client_id' => env('KAFKA_CLIENT_ID', 'laravel-kafka-client'),
             

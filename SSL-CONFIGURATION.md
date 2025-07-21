@@ -42,6 +42,10 @@ IEVxdWlwbWVudCBDQTAeFw0xNzA4MzExMjEzMTRaFw00MVVaFw00MVUeFw0xNzA4
 ...
 -----END CERTIFICATE-----"
 
+# SSL verification settings (optional)
+KAFKA_SSL_VERIFY_HOSTNAME=true
+KAFKA_SSL_CHECK_HOSTNAME=true
+
 # Kafka broker configuration
 KAFKA_BOOTSTRAP_SERVERS=your-kafka-broker:9093
 KAFKA_GROUP_ID=laravel-consumer-group
@@ -64,6 +68,54 @@ KAFKA_SECURITY_PROTOCOL=SSL
 KAFKA_SSL_CA_PEM="-----BEGIN CERTIFICATE-----..."
 KAFKA_SSL_CERTIFICATE_PEM="-----BEGIN CERTIFICATE-----..."
 KAFKA_SSL_KEY_PEM="-----BEGIN PRIVATE KEY-----..."
+```
+
+## SSL Verification Options
+
+The package supports additional SSL verification controls for enhanced security:
+
+### Certificate Verification (`ssl_verify_hostname`)
+```env
+KAFKA_SSL_VERIFY_HOSTNAME=true  # Default: true
+```
+- **true**: Enables SSL certificate verification against the CA
+- **false**: Disables certificate verification (not recommended for production)
+
+**When to disable:**
+- Testing with self-signed certificates
+- Development environments
+- When you have certificate trust issues that need debugging
+
+### Hostname Verification (`ssl_check_hostname`)
+```env
+KAFKA_SSL_CHECK_HOSTNAME=true  # Default: true
+```
+- **true**: Verifies that the certificate hostname matches the broker hostname
+- **false**: Skips hostname verification (not recommended for production)
+
+**When to disable:**
+- When broker hostnames don't match certificate CN/SAN
+- Load balancers with different hostnames
+- IP-based connections with hostname certificates
+
+### Security Combinations
+
+**Maximum Security (Production):**
+```env
+KAFKA_SSL_VERIFY_HOSTNAME=true
+KAFKA_SSL_CHECK_HOSTNAME=true
+```
+
+**Development/Testing:**
+```env
+KAFKA_SSL_VERIFY_HOSTNAME=false
+KAFKA_SSL_CHECK_HOSTNAME=false
+```
+
+**Partial Verification (when hostname doesn't match):**
+```env
+KAFKA_SSL_VERIFY_HOSTNAME=true
+KAFKA_SSL_CHECK_HOSTNAME=false
 ```
 
 ## File Path Considerations
@@ -311,6 +363,35 @@ Failed to create temporary certificate file
 - Check that the system temp directory is writable
 - Ensure sufficient disk space
 - Verify proper permissions on temp directory
+
+### Error: "Certificate verify failed"
+```
+SSL certificate verification failed
+```
+**Solutions:**
+- Ensure the CA certificate is correct and matches the broker's certificate
+- Check certificate expiration dates
+- Verify the certificate chain is complete
+- For testing: Set `KAFKA_SSL_VERIFY_HOSTNAME=false`
+
+### Error: "Hostname verification failed"  
+```
+SSL handshake failed: Hostname verification failed
+```
+**Solutions:**
+- Ensure broker hostname matches certificate CN or SAN
+- Check DNS resolution for broker hostname
+- For IP connections: Set `KAFKA_SSL_CHECK_HOSTNAME=false`
+- Use proper hostname in `KAFKA_BOOTSTRAP_SERVERS`
+
+### Error: "Self-signed certificate"
+```
+SSL certificate problem: self signed certificate
+```
+**Solutions:**
+- Add the self-signed certificate to your CA bundle
+- For testing: Set both verification options to `false`
+- Use proper CA-signed certificates in production
 
 ## Security Best Practices
 
