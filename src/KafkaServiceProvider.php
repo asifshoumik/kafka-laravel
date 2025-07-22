@@ -4,9 +4,9 @@ namespace Asifshoumik\KafkaLaravel;
 
 use Asifshoumik\KafkaLaravel\Console\Commands\KafkaConsumeCommand;
 use Asifshoumik\KafkaLaravel\Console\Commands\KafkaWorkCommand;
-use Asifshoumik\KafkaLaravel\Console\Commands\KafkaSetupCommand;
 use Illuminate\Queue\QueueManager;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Config;
 
 class KafkaServiceProvider extends ServiceProvider
 {
@@ -30,8 +30,46 @@ class KafkaServiceProvider extends ServiceProvider
             __DIR__ . '/../config/kafka-queue.php' => config_path('kafka-queue.php'),
         ], 'kafka-queue-config');
 
+        $this->registerKafkaQueueConnection();
         $this->registerQueueConnector();
         $this->registerCommands();
+    }
+
+    /**
+     * Register the Kafka queue connection automatically.
+     */
+    protected function registerKafkaQueueConnection(): void
+    {
+        // If already configured in queue.php, respect that configuration
+        if (Config::get('queue.connections.kafka')) {
+            return;
+        }
+        
+        // Auto-register from kafka-queue.php configuration
+        $kafkaConfig = Config::get('kafka-queue.connections.kafka');
+        if ($kafkaConfig) {
+            // Merge the main connection config
+            Config::set('queue.connections.kafka', $kafkaConfig);
+            
+            // Also register the complete kafka-queue configuration
+            // This ensures topic_mapping, consumer, and monitoring configs are available
+            $completeKafkaConfig = Config::get('kafka-queue');
+            
+            // Merge topic mapping into the connection config for easy access
+            if (isset($completeKafkaConfig['topic_mapping'])) {
+                Config::set('queue.connections.kafka.topic_mapping', $completeKafkaConfig['topic_mapping']);
+            }
+            
+            // Merge consumer config into the connection config for easy access  
+            if (isset($completeKafkaConfig['consumer'])) {
+                Config::set('queue.connections.kafka.consumer', $completeKafkaConfig['consumer']);
+            }
+            
+            // Merge monitoring config into the connection config for easy access
+            if (isset($completeKafkaConfig['monitoring'])) {
+                Config::set('queue.connections.kafka.monitoring', $completeKafkaConfig['monitoring']);
+            }
+        }
     }
 
     /**
@@ -56,7 +94,6 @@ class KafkaServiceProvider extends ServiceProvider
             $this->commands([
                 KafkaConsumeCommand::class,
                 KafkaWorkCommand::class,
-                KafkaSetupCommand::class,
             ]);
         }
     }

@@ -2,10 +2,13 @@
 
 All notable changes to `kafka-laravel` will be documented in this file.
 
-## [2.0.0] - 2025-07-21
+## [1.0.0] - 2025-01-27
 
 ### Added
-- Complete rewrite with modern Laravel standards
+- Auto-registration of Kafka queue connection - no manual queue.php configuration required
+- SSL certificate string support for Kubernetes environments  
+- Enhanced SSL configuration documentation
+- Complete Kafka queue driver implementation with Laravel integration
 - Comprehensive error handling and retry mechanisms
 - Dead letter queue support for failed jobs
 - Delayed job execution support
@@ -19,15 +22,23 @@ All notable changes to `kafka-laravel` will be documented in this file.
 - Detailed documentation and examples
 
 ### Changed
+- Simplified installation process - removed manual setup steps
+- Improved documentation with streamlined Quick Start guide
+- Better SSL certificate handling for containerized deployments
 - Minimum PHP version requirement to 8.1
 - Minimum Laravel version requirement to 10.0
 - Improved job serialization and deserialization
 - Better exception handling throughout the package
 - Enhanced configuration options
 
+### Removed
+- `kafka:setup` command - no longer needed with auto-registration
+- Manual queue.php configuration requirement
+
 ### Fixed
 - Memory leaks in long-running consumers
 - Connection stability issues
+- Configuration architecture for published packages
 - Job retry logic improvements
 - Producer acknowledgment handling
 

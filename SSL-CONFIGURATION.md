@@ -406,40 +406,34 @@ SSL certificate problem: self signed certificate
 
 ## Alternative: Using Laravel Configuration
 
-Instead of environment variables, you can configure SSL directly in `config/queue.php`:
+Instead of environment variables, you can configure SSL directly in `config/kafka-queue.php`:
 
 **Using certificate files:**
 ```php
-'connections' => [
-    'kafka' => [
-        'driver' => 'kafka',
-        'bootstrap_servers' => 'your-kafka-broker:9093',
-        'security_protocol' => 'SSL',
-        'ssl_ca_location' => storage_path('certificates/ca-certificate.crt'),
-        'ssl_certificate_location' => storage_path('certificates/client.crt'),
-        'ssl_key_location' => storage_path('certificates/client.key'),
+return [
+    'bootstrap_servers' => 'your-kafka-broker:9093',
+    'security_protocol' => 'SSL',
+    'ssl_ca_location' => storage_path('certificates/ca-certificate.crt'),
+    'ssl_certificate_location' => storage_path('certificates/client.crt'),
+    'ssl_key_location' => storage_path('certificates/client.key'),
         'group_id' => 'laravel-consumer-group',
         'default_topic' => 'laravel-jobs',
-        // ... other config
-    ],
-],
+    // ... other config
+];
 ```
 
 **Using certificate strings:**
 ```php
-'connections' => [
-    'kafka' => [
-        'driver' => 'kafka',
-        'bootstrap_servers' => 'your-kafka-broker:9093',
-        'security_protocol' => 'SSL',
-        'ssl_ca_pem' => file_get_contents(storage_path('certificates/ca.crt')),
-        'ssl_certificate_pem' => env('KAFKA_SSL_CERT_PEM'), // From Kubernetes secret
-        'ssl_key_pem' => env('KAFKA_SSL_KEY_PEM'), // From Kubernetes secret
-        'group_id' => 'laravel-consumer-group',
-        'default_topic' => 'laravel-jobs',
-        // ... other config
-    ],
-],
+return [
+    'bootstrap_servers' => 'your-kafka-broker:9093',
+    'security_protocol' => 'SSL',
+    'ssl_ca_pem' => file_get_contents(storage_path('certificates/ca.crt')),
+    'ssl_certificate_pem' => env('KAFKA_SSL_CERT_PEM'), // From Kubernetes secret
+    'ssl_key_pem' => env('KAFKA_SSL_KEY_PEM'), // From Kubernetes secret
+    'group_id' => 'laravel-consumer-group',
+    'default_topic' => 'laravel-jobs',
+    // ... other config
+];
 ```
 
 ## Next Steps

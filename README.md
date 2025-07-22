@@ -64,50 +64,15 @@ php -m | grep rdkafka
 composer require asifshoumik/kafka-laravel
 ```
 
-### 3. Run Setup Command
+### 3. Publish Configuration (Optional)
 
-```bash
-php artisan kafka:setup
-```
-
-This command will:
-- Publish the configuration file (`config/kafka-queue.php`)
-- Add the Kafka connection to your `config/queue.php`
-- Display next steps for configuration
-
-**Alternative: Manual Setup**
-
-If you prefer manual setup:
+The package works out of the box, but you can publish the configuration file for customization:
 
 ```bash
 php artisan vendor:publish --tag=kafka-queue-config
 ```
 
-Then add the Kafka connection to your `config/queue.php`:
-
-```php
-'connections' => [
-    // ... other connections
-    
-    'kafka' => [
-        'driver' => 'kafka',
-        'bootstrap_servers' => env('KAFKA_BOOTSTRAP_SERVERS', 'localhost:9092'),
-        'group_id' => env('KAFKA_GROUP_ID', 'laravel-consumer-group'),
-        'default_topic' => env('KAFKA_DEFAULT_TOPIC', 'laravel-jobs'),
-        'dead_letter_queue' => env('KAFKA_DEAD_LETTER_QUEUE', 'laravel-failed-jobs'),
-        'security_protocol' => env('KAFKA_SECURITY_PROTOCOL', 'PLAINTEXT'),
-        'max_attempts' => env('KAFKA_MAX_ATTEMPTS', 3),
-        
-        // SSL settings (optional)
-        'ssl_ca_location' => env('KAFKA_SSL_CA_LOCATION'),
-        'ssl_ca_pem' => env('KAFKA_SSL_CA_PEM'),
-        'ssl_verify_hostname' => env('KAFKA_SSL_VERIFY_HOSTNAME', true),
-        'ssl_check_hostname' => env('KAFKA_SSL_CHECK_HOSTNAME', true),
-        
-        // Add other settings as needed from config/kafka-queue.php
-    ],
-],
-```
+This creates `config/kafka-queue.php` with all available options.
 
 ### 4. Configure Environment Variables
 
@@ -117,7 +82,7 @@ Add the following to your `.env` file:
 # Queue Configuration
 QUEUE_CONNECTION=kafka
 
-# Kafka Configuration
+# Kafka Configuration  
 KAFKA_BOOTSTRAP_SERVERS=localhost:9092
 KAFKA_GROUP_ID=laravel-consumer-group
 KAFKA_DEFAULT_TOPIC=laravel-jobs
@@ -136,24 +101,47 @@ KAFKA_COMPRESSION_TYPE=none
 KAFKA_MAX_ATTEMPTS=3
 ```
 
-### 5. Update Queue Configuration
+That's it! The package automatically registers the Kafka queue connection with all configurations, including:
+- **Main connection settings** (brokers, security, SSL, etc.)
+- **Topic mapping** for routing different job types to different topics
+- **Consumer configuration** for worker management
+- **Monitoring and logging** settings
 
-In `config/queue.php`, add the Kafka connection:
+No manual configuration of `config/queue.php` is required.
+
+## Quick Start
+
+### 1. Dispatch Jobs
+
+Any existing Laravel job will work with Kafka:
 
 ```php
-'connections' => [
-    // ... other connections
-    
-    'kafka' => [
-        'driver' => 'kafka',
-        'bootstrap_servers' => env('KAFKA_BOOTSTRAP_SERVERS', 'localhost:9092'),
-        'group_id' => env('KAFKA_GROUP_ID', 'laravel-consumer-group'),
-        'default_topic' => env('KAFKA_DEFAULT_TOPIC', 'laravel-jobs'),
-        'dead_letter_queue' => env('KAFKA_DEAD_LETTER_QUEUE', 'laravel-failed-jobs'),
-        'security_protocol' => env('KAFKA_SECURITY_PROTOCOL', 'PLAINTEXT'),
-        'max_attempts' => env('KAFKA_MAX_ATTEMPTS', 3),
-    ],
-],
+use App\Jobs\ProcessOrder;
+
+// Dispatch to default topic
+dispatch(new ProcessOrder($order));
+
+// Dispatch to specific topic  
+ProcessOrder::dispatch($order)->onQueue('orders');
+
+// Dispatch with delay
+ProcessOrder::dispatch($order)->delay(now()->addMinutes(10));
+```
+
+### 2. Start Consumer
+
+```bash
+php artisan kafka:work
+```
+
+### 3. Monitor Jobs
+
+```bash
+# Work specific queue/topic
+php artisan kafka:work orders
+
+# Work with options
+php artisan kafka:work --timeout=60 --tries=3
 ```
 
 ## Usage
@@ -238,7 +226,7 @@ php artisan queue:work kafka --queue=laravel-jobs --timeout=60 --memory=256
 
 ### Topic Mapping
 
-Configure topic mapping in `config/kafka-queue.php`:
+Topic mapping is automatically available through the published configuration. You can customize it in `config/kafka-queue.php`:
 
 ```php
 'topic_mapping' => [
@@ -440,15 +428,16 @@ composer require asifshoumik/kafka-laravel --ignore-platform-req=ext-rdkafka
 
 If your configuration changes in `config/kafka-queue.php` are not taking effect:
 
-1. **Check queue.php**: Ensure you have added the Kafka connection to `config/queue.php`
-2. **Run setup command**: `php artisan kafka:setup` to automatically configure
-3. **Clear config cache**: `php artisan config:clear`
-4. **Verify environment**: `php artisan config:show queue.connections.kafka`
+1. **Clear config cache**: `php artisan config:clear`
+2. **Restart queue workers**: Stop and restart all queue workers
+3. **Verify environment**: `php artisan config:show queue.connections.kafka`
 
 The package configuration works in this order:
-1. `config/queue.php` settings override everything
-2. `config/kafka-queue.php` provides defaults via `mergeConfigFrom()`
-3. Environment variables provide the actual values
+1. Environment variables (`.env` file) take highest priority  
+2. Published `config/kafka-queue.php` provides defaults and advanced options
+3. Package defaults are used as fallbacks
+
+**Note:** The package automatically registers the Kafka queue connection, so no manual configuration of `config/queue.php` is required.
 
 ### Connection Issues
 
