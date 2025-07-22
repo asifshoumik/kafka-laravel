@@ -24,11 +24,12 @@ class KafkaConnector implements ConnectorInterface
         $this->validateConfiguration($config);
 
         try {
-            $conf = $this->buildConfiguration($config);
-            $producer = new Producer($conf);
+            // Create producer configuration
+            $producerConf = $this->buildConfiguration($config);
+            $producer = new Producer($producerConf);
             
-            // Add consumer-specific configurations
-            $consumerConf = clone $conf;
+            // Create consumer configuration with consumer-specific settings
+            $consumerConf = $this->buildConfiguration($config);
             $consumerConf->set('group.id', $config['group_id']);
             $consumerConf->set('auto.offset.reset', $config['auto_offset_reset'] ?? 'earliest');
             $consumerConf->set('enable.auto.commit', $config['enable_auto_commit'] ?? 'true');
