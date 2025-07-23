@@ -24,20 +24,12 @@ class KafkaConnector implements ConnectorInterface
         $this->validateConfiguration($config);
 
         try {
-            // Create producer configuration
-            $producerConf = $this->buildConfiguration($config);
+            // Create producer configuration with producer-specific settings
+            $producerConf = $this->buildProducerConfiguration($config);
             $producer = new Producer($producerConf);
             
             // Create consumer configuration with consumer-specific settings
-            $consumerConf = $this->buildConfiguration($config);
-            $consumerConf->set('group.id', $config['group_id']);
-            $consumerConf->set('auto.offset.reset', $config['auto_offset_reset'] ?? 'earliest');
-            $consumerConf->set('enable.auto.commit', $config['enable_auto_commit'] ?? 'true');
-            
-            // Set session timeout and heartbeat interval for better consumer management
-            $consumerConf->set('session.timeout.ms', $config['session_timeout_ms'] ?? 30000);
-            $consumerConf->set('heartbeat.interval.ms', $config['heartbeat_interval_ms'] ?? 3000);
-            
+            $consumerConf = $this->buildConsumerConfiguration($config);
             $consumer = new KafkaConsumer($consumerConf);
 
             Log::info('Kafka connection established', [
@@ -91,11 +83,39 @@ class KafkaConnector implements ConnectorInterface
     {
         $conf = new Conf();
 
-        // Basic configuration
+        // Basic configuration (common for both producer and consumer)
         $conf->set('bootstrap.servers', $config['bootstrap_servers']);
         $conf->set('client.id', $config['client_id'] ?? 'laravel-kafka-client');
         
-        // Message delivery configuration
+        // Security configuration
+        $securityProtocol = $config['security_protocol'] ?? 'PLAINTEXT';
+        $conf->set('security.protocol', $securityProtocol);
+        
+        if ($securityProtocol !== 'PLAINTEXT') {
+            $conf->set('sasl.mechanisms', $config['sasl_mechanisms'] ?? 'PLAIN');
+            $conf->set('sasl.username', $config['sasl_username']);
+            $conf->set('sasl.password', $config['sasl_password']);
+            
+            // SSL configuration if needed
+            if (str_contains($securityProtocol, 'SSL')) {
+                $this->configureSslCertificates($conf, $config);
+            }
+        }
+
+        return $conf;
+    }
+
+    /**
+     * Build producer-specific configuration.
+     *
+     * @param array $config
+     * @return Conf
+     */
+    private function buildProducerConfiguration(array $config): Conf
+    {
+        $conf = $this->buildConfiguration($config);
+        
+        // Producer-specific configuration
         $conf->set('message.timeout.ms', $config['message_timeout_ms'] ?? 300000);
         $conf->set('request.timeout.ms', $config['request_timeout_ms'] ?? 30000);
         $conf->set('delivery.timeout.ms', $config['delivery_timeout_ms'] ?? 300000);
@@ -113,20 +133,54 @@ class KafkaConnector implements ConnectorInterface
             $conf->set('compression.type', $config['compression_type']);
         }
 
-        // Security configuration
-        $securityProtocol = $config['security_protocol'] ?? 'PLAINTEXT';
-        $conf->set('security.protocol', $securityProtocol);
+        // Producer reliability settings
+        $conf->set('acks', $config['acks'] ?? 'all'); // Wait for all replicas
+        $conf->set('enable.idempotence', $config['enable_idempotence'] ?? 'true');
+        $conf->set('max.in.flight.requests.per.connection', $config['max_in_flight'] ?? 5);
         
-        if ($securityProtocol !== 'PLAINTEXT') {
-            $conf->set('sasl.mechanisms', $config['sasl_mechanisms'] ?? 'PLAIN');
-            $conf->set('sasl.username', $config['sasl_username']);
-            $conf->set('sasl.password', $config['sasl_password']);
-            
-            // SSL configuration if needed
-            if (str_contains($securityProtocol, 'SSL')) {
-                $this->configureSslCertificates($conf, $config);
+        // Set delivery report callback for better error handling
+        $conf->setDrMsgCb(function ($kafka, $message) {
+            if ($message->err) {
+                Log::error('Kafka message delivery failed', [
+                    'topic' => $message->topic_name,
+                    'partition' => $message->partition,
+                    'error' => $message->errstr(),
+                    'error_code' => $message->err
+                ]);
+            } else {
+                Log::debug('Kafka message delivered successfully', [
+                    'topic' => $message->topic_name,
+                    'partition' => $message->partition,
+                    'offset' => $message->offset
+                ]);
             }
-        }
+        });
+
+        return $conf;
+    }
+
+    /**
+     * Build consumer-specific configuration.
+     *
+     * @param array $config
+     * @return Conf
+     */
+    private function buildConsumerConfiguration(array $config): Conf
+    {
+        $conf = $this->buildConfiguration($config);
+        
+        // Consumer-specific configuration
+        $conf->set('group.id', $config['group_id']);
+        $conf->set('auto.offset.reset', $config['auto_offset_reset'] ?? 'earliest');
+        $conf->set('enable.auto.commit', $config['enable_auto_commit'] ?? 'true');
+        
+        // Session management for better consumer reliability
+        $conf->set('session.timeout.ms', $config['session_timeout_ms'] ?? 30000);
+        $conf->set('heartbeat.interval.ms', $config['heartbeat_interval_ms'] ?? 3000);
+        
+        // Consumer-specific timeouts
+        $conf->set('fetch.wait.max.ms', $config['fetch_wait_max_ms'] ?? 500);
+        $conf->set('fetch.min.bytes', $config['fetch_min_bytes'] ?? 1);
 
         return $conf;
     }

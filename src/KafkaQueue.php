@@ -72,11 +72,24 @@ class KafkaQueue extends Queue implements QueueContract
                 $headers
             );
 
-            // Wait for message delivery confirmation
-            $result = $this->producer->flush($this->config['flush_timeout_ms'] ?? 10000);
+            // Poll for events to trigger delivery callbacks
+            $this->producer->poll(0);
+            
+            // Wait for message delivery confirmation with proper timeout
+            $flushTimeout = $this->config['flush_timeout_ms'] ?? 10000;
+            $result = $this->producer->flush($flushTimeout);
             
             if ($result !== RD_KAFKA_RESP_ERR_NO_ERROR) {
-                throw KafkaException::producerError("Failed to deliver message to topic: {$topic}");
+                // Map error codes to human-readable messages
+                $errorMsg = $this->getKafkaErrorMessage($result, $topic);
+                Log::error('Kafka producer flush failed', [
+                    'topic' => $topic,
+                    'error_code' => $result,
+                    'error_message' => $errorMsg,
+                    'message_id' => $messageId,
+                    'flush_timeout' => $flushTimeout
+                ]);
+                throw KafkaException::producerError($errorMsg);
             }
 
             Log::debug('Message pushed to Kafka', [
@@ -88,13 +101,28 @@ class KafkaQueue extends Queue implements QueueContract
             return $messageId;
             
         } catch (\Exception $e) {
-            Log::error('Failed to push message to Kafka', [
-                'topic' => $topic,
-                'error' => $e->getMessage(),
-                'payload_size' => strlen($payload)
-            ]);
+            // Clean up duplicate error messages 
+            $errorMessage = $e->getMessage();
+            if (str_contains($errorMessage, 'Kafka producer error: Kafka producer error:')) {
+                $errorMessage = str_replace('Kafka producer error: Kafka producer error:', 'Kafka producer error:', $errorMessage);
+            }
             
-            throw KafkaException::producerError($e->getMessage());
+            // Only log if it's not already a KafkaException (to avoid duplicate logging)
+            if (!($e instanceof KafkaException)) {
+                Log::error('Failed to push message to Kafka', [
+                    'topic' => $topic,
+                    'error' => $errorMessage,
+                    'payload_size' => strlen($payload),
+                    'exception_type' => get_class($e)
+                ]);
+            }
+            
+            // Don't re-wrap KafkaExceptions to avoid double "Kafka producer error:" prefix
+            if ($e instanceof KafkaException) {
+                throw $e;
+            }
+            
+            throw KafkaException::producerError($errorMessage);
         }
     }
 
@@ -328,5 +356,39 @@ class KafkaQueue extends Queue implements QueueContract
     public function getConfig(): array
     {
         return $this->config;
+    }
+
+    /**
+     * Map Kafka error codes to human-readable messages
+     */
+    protected function getKafkaErrorMessage(int $errorCode, string $topic = ''): string
+    {
+        $errorMessages = [
+            -185 => 'Transport error: Unable to connect to Kafka broker. Check network connectivity, broker addresses, and SSL/TLS configuration.',
+            -184 => 'Authentication failed: Check SASL credentials and security protocol settings.',
+            -186 => 'Operation timed out: Increase timeout values or check broker availability.',
+            -195 => 'Unknown topic or partition: Verify topic exists and partition count is correct.',
+            -191 => 'Not enough replicas: Check broker availability and replication factor.',
+            -190 => 'Not enough replicas after append: Message was written but not fully replicated.',
+            -189 => 'Invalid message size: Message exceeds broker or topic limits.',
+            -188 => 'Offset out of range: Requested offset is not available.',
+            -187 => 'Unknown member ID: Consumer group coordination failed.',
+            -199 => 'Coordinator not available: Group coordinator could not be found.',
+            -198 => 'Not coordinator for group: This broker is not the group coordinator.',
+            -197 => 'Invalid group ID: Group ID format is invalid.',
+            -196 => 'Unknown group ID: Consumer group does not exist.',
+            -1 => 'Unknown error: An unspecified error occurred.',
+            -2 => 'No error: Operation completed successfully.',
+            0 => 'No error: Operation completed successfully.',
+        ];
+
+        $baseMessage = $errorMessages[$errorCode] ?? "Unknown Kafka error code: {$errorCode}";
+        
+        // Add topic context if provided
+        if (!empty($topic)) {
+            return "Topic '{$topic}': {$baseMessage}";
+        }
+        
+        return $baseMessage;
     }
 }

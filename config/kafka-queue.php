@@ -71,9 +71,16 @@ return [
             // Compression
             'compression_type' => env('KAFKA_COMPRESSION_TYPE', 'none'), // none, gzip, snappy, lz4, zstd
             
+            // Producer reliability settings
+            'acks' => env('KAFKA_ACKS', 'all'), // 0, 1, all (or -1)
+            'enable_idempotence' => env('KAFKA_ENABLE_IDEMPOTENCE', 'true'),
+            'max_in_flight' => env('KAFKA_MAX_IN_FLIGHT', 5),
+            
             // Consumer settings
             'auto_offset_reset' => env('KAFKA_AUTO_OFFSET_RESET', 'earliest'), // earliest, latest
             'enable_auto_commit' => env('KAFKA_ENABLE_AUTO_COMMIT', 'true'),
+            'fetch_wait_max_ms' => env('KAFKA_FETCH_WAIT_MAX_MS', 500),
+            'fetch_min_bytes' => env('KAFKA_FETCH_MIN_BYTES', 1),
             
             // Error handling
             'sleep_on_error' => env('KAFKA_SLEEP_ON_ERROR', 5),
