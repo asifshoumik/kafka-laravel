@@ -159,19 +159,64 @@ class KafkaJobContainer extends Job implements JobContract
         try {
             $payload = $this->payload();
             
-            if (isset($payload['job']) && is_string($payload['job'])) {
-                // Handle serialized job class
+            // Handle nested job structure from Laravel's job serialization
+            if (isset($payload['job']['job']) && is_string($payload['job']['job'])) {
+                // Fully serialized job object
+                $job = unserialize($payload['job']['job']);
+                if (method_exists($job, 'handle')) {
+                    $this->container->call([$job, 'handle']);
+                }
+            } elseif (isset($payload['job']) && is_string($payload['job'])) {
+                // Direct serialized job class
                 $job = unserialize($payload['job']);
                 if (method_exists($job, 'handle')) {
-                    $job->handle();
+                    $this->container->call([$job, 'handle']);
                 }
             } elseif (isset($payload['displayName'])) {
-                // Handle job class name
+                // Handle job class name with constructor parameters
                 $jobClass = $payload['displayName'];
+                
                 if (class_exists($jobClass)) {
-                    $job = $this->container->make($jobClass);
+                    // Extract constructor parameters from job.data
+                    $jobData = $payload['job']['data'] ?? $payload['data'] ?? [];
+                    
+                    // Separate numeric keys (constructor args) from named properties
+                    $constructorArgs = [];
+                    $namedData = [];
+                    
+                    foreach ($jobData as $key => $value) {
+                        if (is_numeric($key)) {
+                            $constructorArgs[(int)$key] = $value;
+                        } else {
+                            $namedData[$key] = $value;
+                        }
+                    }
+                    
+                    // Sort constructor args by key to maintain order
+                    ksort($constructorArgs);
+                    
+                    // Instantiate job with constructor parameters
+                    if (!empty($constructorArgs)) {
+                        $job = new $jobClass(...array_values($constructorArgs));
+                    } elseif (!empty($namedData)) {
+                        // Fallback: pass named data as single array parameter
+                        $job = new $jobClass($namedData);
+                    } else {
+                        // No parameters
+                        $job = new $jobClass();
+                    }
+                    
+                    // Set job properties from payload if available
+                    if (isset($payload['job']['middleware'])) {
+                        $job->middleware = $payload['job']['middleware'];
+                    }
+                    if (isset($payload['job']['chained'])) {
+                        $job->chained = $payload['job']['chained'];
+                    }
+                    
+                    // Execute the job
                     if (method_exists($job, 'handle')) {
-                        $job->handle($payload['data'] ?? []);
+                        $this->container->call([$job, 'handle']);
                     }
                 }
             }
@@ -190,6 +235,7 @@ class KafkaJobContainer extends Job implements JobContract
                 'job_id' => $this->getJobId(),
                 'job_name' => $this->getName(),
                 'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
                 'attempts' => $this->attempts()
             ]);
 

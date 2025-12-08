@@ -101,8 +101,13 @@ class KafkaQueue extends Queue implements QueueContract
             return $messageId;
             
         } catch (\Exception $e) {
-            // Clean up duplicate error messages 
+            // Safely get error message (handle cases where getMessage() might return non-string)
             $errorMessage = $e->getMessage();
+            if (!is_string($errorMessage)) {
+                $errorMessage = json_encode($errorMessage) ?: 'Unknown error';
+            }
+            
+            // Clean up duplicate error messages 
             if (str_contains($errorMessage, 'Kafka producer error: Kafka producer error:')) {
                 $errorMessage = str_replace('Kafka producer error: Kafka producer error:', 'Kafka producer error:', $errorMessage);
             }
