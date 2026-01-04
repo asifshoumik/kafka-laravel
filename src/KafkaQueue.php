@@ -16,7 +16,10 @@ class KafkaQueue extends Queue implements QueueContract
 {
     protected Producer $producer;
     protected KafkaConsumer $consumer;
-    protected array $config;
+    /**
+     * Configuration array (kept untyped to remain compatible with parent class)
+     */
+    protected $config;
     protected int $sleepOnError;
 
     public function __construct(Producer $producer, KafkaConsumer $consumer, array $config = [])
