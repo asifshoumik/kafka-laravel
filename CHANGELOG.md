@@ -47,6 +47,14 @@ All notable changes to `kafka-laravel` will be documented in this file.
 - Support for older Laravel versions (< 10.0)
 - Deprecated serialization methods
 
+## [1.0.1] - 2026-01-05
+
+### Added
+- Added compatibility with Laravel 12.x (composer constraints updated)
+
+### Changed
+- Updated `orchestra/testbench` dev dependency to include v10 for Laravel 12 testing
+
 ## [1.0.0] - Initial Release
 
 ### Added
