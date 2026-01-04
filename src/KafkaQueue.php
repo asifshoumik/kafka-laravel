@@ -145,7 +145,7 @@ class KafkaQueue extends Queue implements QueueContract
         $delayUntil = time() + (is_numeric($delay) ? $delay : 0);
         
         return $this->pushRaw(
-            $this->createPayload($job, $queue ?? $this->getDefaultQueue(), $data),
+            $this->createPayload($job, $queue ?? $this->getDefaultQueue(), $data, $delay),
             $queue,
             ['headers' => ['delay_until' => $delayUntil]]
         );
@@ -319,8 +319,11 @@ class KafkaQueue extends Queue implements QueueContract
 
     /**
      * Create a payload string from the given job and data.
+     *
+     * Signature kept compatible with Illuminate\Queue\Queue::createPayload
+     * which includes an optional `$delay` parameter.
      */
-    protected function createPayload($job, $queue, $data = ''): string
+    protected function createPayload($job, $queue, $data = '', $delay = null): string
     {
         $payload = [
             'uuid' => Str::uuid()->toString(),
@@ -330,6 +333,10 @@ class KafkaQueue extends Queue implements QueueContract
             'attempts' => 0,
             'pushedAt' => time(),
         ];
+
+        if (!is_null($delay)) {
+            $payload['delay'] = $delay;
+        }
 
         return json_encode($payload);
     }
